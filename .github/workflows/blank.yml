@@ -1,12 +1,7 @@
 name: CI with Prometheus Metrics (Python)
 
 on:
-  push:
-    branches:
-      - main
-  pull_request:
-    branches:
-      - main
+  workflow_dispatch:
 
 jobs:
   build:
