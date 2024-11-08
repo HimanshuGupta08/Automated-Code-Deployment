@@ -1,7 +1,12 @@
 name: CI with Prometheus Metrics
 
 on:
-  workflow_dispatch:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
 
 jobs:
   build:
@@ -22,9 +27,12 @@ jobs:
       - name: Run tests
         run: npm test
 
-      - name: Export metrics to Prometheus
-        uses: Prometheus-GitHub-Actions/metrics-exporter@v1
+      - name: Export metrics to PushGateway
+        uses: prometheus-community/prometheus-pushgateway@v1
         with:
-          prometheus_pushgateway_url: 'http://localhost:9091'
+          pushgateway_url: 'http://localhost:9091'  # URL of your PushGateway
           job_name: 'github-actions'
           instance: ${{ github.workflow }}-${{ github.job }}
+          metrics: |
+            github_actions_build_duration_seconds{status="success"} 42.1
+            github_actions_build_duration_seconds{status="failure"} 56.3
