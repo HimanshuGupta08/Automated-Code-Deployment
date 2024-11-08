@@ -25,6 +25,6 @@ jobs:
       - name: Export metrics to Prometheus
         uses: Prometheus-GitHub-Actions/metrics-exporter@v1
         with:
-          prometheus_pushgateway_url: ${{ secrets.PROMETHEUS_PUSHGATEWAY_URL }}
+          prometheus_pushgateway_url: 'http://localhost:9091'
           job_name: 'github-actions'
           instance: ${{ github.workflow }}-${{ github.job }}
