@@ -22,12 +22,8 @@ jobs:
       - name: Run tests
         run: npm test
 
-      - name: Export metrics to PushGateway
-        uses: prometheus-community/prometheus-pushgateway@v1
-        with:
-          pushgateway_url: 'http://localhost:9091'  # URL of your PushGateway
-          job_name: 'github-actions'
-          instance: ${{ github.workflow }}-${{ github.job }}
-          metrics: |
-            github_actions_build_duration_seconds{status="success"} 42.1
-            github_actions_build_duration_seconds{status="failure"} 56.3
+      - name: Push custom metrics to Prometheus PushGateway
+        run: |
+          # Push a custom metric to the PushGateway (use your own metrics here)
+          curl --data "github_actions_build_duration_seconds{status=\"success\"} 42.1" http://localhost:9091/metrics/job/github-actions/instance/${GITHUB_JOB}
+          curl --data "github_actions_build_duration_seconds{status=\"failure\"} 56.3" http://localhost:9091/metrics/job/github-actions/instance/${GITHUB_JOB}
