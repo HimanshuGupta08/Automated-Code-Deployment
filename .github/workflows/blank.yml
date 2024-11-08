@@ -22,7 +22,7 @@ jobs:
 
       - name: Run tests
         run: |
-          pytest  # Replace with the test command for your project
+          pytest -v # Replace with the test command for your project
 
       - name: Push custom metrics to Prometheus PushGateway
         run: |
