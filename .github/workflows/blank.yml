@@ -1,7 +1,12 @@
-name: CI with Prometheus Metrics
+name: CI with Prometheus Metrics (Python)
 
 on:
-  workflow_dispatch:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
 
 jobs:
   build:
@@ -11,18 +16,20 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v2
+      - name: Set up Python
+        uses: actions/setup-python@v2
         with:
-          node-version: '14'
+          python-version: '3.8'  # Use the version of Python you need
 
       - name: Install dependencies
-        run: npm install
+        run: |
+          pip install pytest
 
       - name: Run tests
-        run: npm test
+        run: |
+          pytest  # Replace with the test command for your project
 
       - name: Push custom metrics to Prometheus PushGateway
         run: |
-          curl --data "github_actions_build_duration_seconds{status=\"success\"} 42.1" http://localhost:9091/metrics/job/github-actions/instance/${GITHUB_JOB}
-          curl --data "github_actions_build_duration_seconds{status=\"failure\"} 56.3" http://localhost:9091/metrics/job/github-actions/instance/${GITHUB_JOB}
+          curl --data "python_build_duration_seconds{status=\"success\"} 42.1" http://localhost:9091/metrics/job/github-actions/instance/${GITHUB_JOB}
+          curl --data "python_build_duration_seconds{status=\"failure\"} 56.3" http://localhost:9091/metrics/job/github-actions/instance/${GITHUB_JOB}
