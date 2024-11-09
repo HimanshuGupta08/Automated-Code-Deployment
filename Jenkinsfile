@@ -10,8 +10,7 @@ pipeline {
             steps {
                 script {
                     // Fetch current date and timestamp
-                    def istTimezone = TimeZone.getTimeZone('Asia/Kolkata')
-                    def timestamp = new Date().toInstant().atZone(istTimezone.toZoneId()).toLocalDateTime().format(java.time.format.DateTimeFormatter.ofPattern('yyyyMMdd_HHmmss'))
+                    def timestamp = new Date().format("yyyyMMdd_HHmmss")
 
                     // Use withCredentials to bind the token
                     withCredentials([string(credentialsId: 'github_token', variable: 'GITHUB_TOKEN')]) {
