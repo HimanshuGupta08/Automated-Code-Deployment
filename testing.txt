@@ -1,7 +1,1 @@
-testing
-
-testing2
-
-test3
-
-test4   
+This pipeline is for testing to trigger jenkins automatically.
