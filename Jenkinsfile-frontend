@@ -1,0 +1,70 @@
+pipeline {
+    agent any
+    environment {
+        GITHUB_CREDENTIALS = 'github-credentials'   // Your GitHub credentials in Jenkins
+        EC2_CREDENTIALS = 'server-username-password' // Jenkins credentials ID for EC2 username/password
+        REPO_URL = 'https://github.com/richest/code-store-frontend.git'  // GitHub repository URL
+    }
+    stages {
+        stage('Checkout') {
+            steps {
+                script {
+                    echo "Checking out frontend repository"
+                    checkout([
+                        $class: 'GitSCM',
+                        branches: [[name: "*/master"]],
+                        userRemoteConfigs: [[url: REPO_URL, credentialsId: GITHUB_CREDENTIALS]]
+                    ])
+                }
+            }
+        }
+
+        stage('Build') {
+            steps {
+                script {
+                    echo "Building frontend"
+                    // Replace with the appropriate frontend build commands
+                    sh 'npm install'
+                    sh 'npm run build'
+                }
+            }
+        }
+
+        stage('Deploy') {
+            steps {
+                script {
+                    echo "Deploying frontend to EC2"
+                    // Extract the username and password from Jenkins credentials
+                    withCredentials([usernamePassword(credentialsId: EC2_CREDENTIALS, passwordVariable: 'SSH_PASSWORD', usernameVariable: 'SSH_USER')]) {
+                        // Use sshpass with username and password for the ssh connection
+                        sh """
+                        sshpass -p \${SSH_PASSWORD} ssh -o StrictHostKeyChecking=no \${SSH_USER}@24.144.64.148 '
+                            cd /var/www/html/codestoretest/frontend && git pull origin master && npm install && npm run build
+                            sudo systemctl restart frontend-service
+                        '
+                        """
+                    }
+                }
+            }
+        }
+
+        stage('Post-Deployment Check') {
+            steps {
+                script {
+                    echo "Performing post-deployment health check"
+                    // Run a simple health check (replace with your own health check URL)
+                    sh 'curl -f http://24.144.64.148/healthcheck || exit 1'
+                }
+            }
+        }
+    }
+    post {
+        failure {
+            echo "Deployment failed for frontend"
+            // Optional: You can trigger a Jira ticket here in case of failure
+        }
+        success {
+            echo "Frontend deployment completed successfully"
+        }
+    }
+}
