@@ -1,17 +1,58 @@
-Jenkins Pipeline to Clone GitHub Repository Using Personal Access Token and deploy the project on server.
+**CI/CD Integration for Automated Code Deployment**
+This repository is part of a CI/CD pipeline designed to automate the deployment of code to a client’s server. The pipeline integrates three GitHub repositories: Admin Frontend, Admin Backend, and a Common/Shared Repository. It ensures that code pushed to these repositories is automatically deployed to the client's server within a specified time window, with proper logging and error handling.
 
-This Jenkins pipeline demonstrates on how to deploy a project on the live server with just one click. The user just needs to push the code from local to github and then a webhook will get triggered which will take the push event from github to jenkins. Jenkins will trigger the pipeline which contains the steps on how to deploy the project on the live server.
+**Overview**
+The goal of this CI/CD pipeline is to ensure continuous and automated deployment without downtime. The pipeline uses GitHub Webhooks to trigger Jenkins builds upon a push event, which then orchestrates the deployment process. The deployment is scheduled according to the client’s specified time window to avoid service interruptions.
+
+**Key Features:**
+Automatic Deployment: Whenever there is a push to any of the three GitHub repositories, Jenkins triggers a deployment.
+Scheduled Deployments: The deployment will be executed during the client’s selected time window to avoid downtime.
+Error Handling: If the deployment fails at any step, detailed logs are generated to help with troubleshooting.
+Multi-repository Integration: The pipeline integrates with three GitHub repositories—Admin Frontend, Admin Backend, and Common Repository.
 
 **Prerequisites**
+Before setting up and running the CI/CD pipeline, ensure that you have the following:
 
-**Jenkins Server**: Ensure Jenkins is installed and configured.
+**GitHub Repositories:**
 
-**Project Server**: Server on which project needs to be deployed. (It could be same as jenkins server or any other server).
+Admin Frontend: your-org/admin-frontend
+Admin Backend: your-org/admin-backend
+Common Repository: your-org/common-repo
 
-**GitHub Personal Access Token**: Generate a PAT with appropriate repository access permissions on GitHub and store it in Jenkins credentials under an identifier, such as github_token.
+**Jenkins Setup:**
 
-**Jenkins Git Plugin**: Verify that the Git plugin is installed on Jenkins to support Git operations.
+A Jenkins server installed and running.
+Jenkins pipelines configured to receive webhook triggers and handle the deployment steps.
+GitHub Webhook Configuration: Set up webhooks to trigger Jenkins jobs on push events. Each repository will need a corresponding webhook to notify Jenkins.
 
-**GitHub Repository:** Have the repository URL ready for cloning.
+Deployment Server Access:
 
-**Repository Access**: The PAT should have at least repo scope permissions on GitHub to allow cloning.
+SSH or other required access to the client's server.
+Deployment credentials or API keys to perform deployment actions.
+
+**Pipeline Flow**
+
+Step 1: Push Event
+A developer pushes code to one of the repositories (Admin Frontend, Admin Backend, or Common).
+This push event triggers a GitHub webhook, notifying Jenkins that a new commit has been made.
+
+Step 2: Jenkins Job Triggered
+Jenkins picks up the webhook event and triggers the corresponding job.
+The job initiates the deployment process as defined in the Jenkins pipeline configuration.
+
+Step 3: Scheduled Deployment
+The deployment is scheduled based on the client’s preferred time window to avoid service downtime. This can be configured in Jenkins as part of the pipeline settings.
+If the push happens outside the desired window, the job is either queued or postponed based on configuration.
+
+Step 4: Deployment Process
+Jenkins handles the deployment steps such as:
+Pulling the latest changes from GitHub.
+Building or packaging the application (if necessary).
+Deploying the updated code to the client’s server.
+
+Step 5: Error Handling and Logging
+If any part of the deployment fails, detailed logs are generated and stored in Jenkins for debugging.
+Notifications are sent to stakeholders (via email, Slack, or other integrations) to inform them of the failure.
+
+Step 6: Success Notification
+Once the deployment succeeds, a success message is logged, and stakeholders are notified.
