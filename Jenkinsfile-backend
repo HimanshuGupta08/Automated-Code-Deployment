@@ -1,68 +1,74 @@
 pipeline {
     agent any
     environment {
-        GITHUB_CREDENTIALS = 'github-credentials'   // Your GitHub credentials in Jenkins
-        EC2_CREDENTIALS = 'server-username-password' // Jenkins credentials ID for EC2 username/password
-        REPO_URL = 'https://github.com/richest/code-store-backend.git'  // GitHub repository URL
+        DEPLOY_DIR = '/var/www/html/code-storeapi' // Deployment directory test
+        GITHUB_REPO = 'https://github.com/richest/code-store-backend.git'
     }
     stages {
-        stage('Checkout') {
+        stage('Clone Repository') {
             steps {
-                script {
-                    echo "Checking out backend repository"
-                    checkout([
-                        $class: 'GitSCM',
-                        branches: [[name: "*/main"]],
-                        userRemoteConfigs: [[url: REPO_URL, credentialsId: GITHUB_CREDENTIALS]]
-                    ])
+                echo 'Cloning repository to Jenkins workspace...'
+                checkout([
+                    $class: 'GitSCM',
+                    branches: [[name: 'main']],
+                    userRemoteConfigs: [[
+                        url: GITHUB_REPO,
+                        credentialsId: 'github-credentials'
+                    ]]
+                ])
+            }
+        }
+        stage('Pull Latest Changes') {
+            steps {
+                echo 'Pulling latest changes from GitHub...'
+                withCredentials([usernamePassword(credentialsId: 'github-credentials', usernameVariable: 'GIT_USER', passwordVariable: 'GIT_PASS')]) {
+                    sh """
+                        git config --global --add safe.directory ${DEPLOY_DIR}
+                        cd ${DEPLOY_DIR} || exit 1
+                        git remote set-url origin https://${GIT_USER}:${GIT_PASS}@github.com/richest/code-store-backend.git
+                        git fetch --all
+                        git reset --hard origin/main
+                    """
                 }
             }
         }
-
-        stage('install') {
+        stage('Install Dependencies') {
             steps {
-                script {
-                    echo "Installing backend"
-                    sh 'npm install'
-                }
+                echo 'Installing project dependencies...'
+                sh """
+                    cd ${DEPLOY_DIR} || exit 1
+                    npm install
+                """
             }
         }
-
-        stage('Deploy') {
+        stage('Restart Application') {
             steps {
-                script {
-                    echo "Deploying backend to EC2"
-                    // Extract the username and password from Jenkins credentials
-                    withCredentials([usernamePassword(credentialsId: EC2_CREDENTIALS, passwordVariable: 'SSH_PASSWORD', usernameVariable: 'SSH_USER')]) {
-                        // Use sshpass with username and password for the ssh connection
-                        sh """
-                        sshpass -p \${SSH_PASSWORD} ssh -o StrictHostKeyChecking=no \${SSH_USER}@24.144.64.148 '
-                            cd /var/www/html/codestoretest/backend && git pull origin main && npm install
-                            sudo systemctl restart backend-service
-                        '
-                        """
-                    }
-                }
-            }
-        }
-
-        stage('Post-Deployment Check') {
-            steps {
-                script {
-                    echo "Performing post-deployment health check"
-                    // Replace with your backend health check URL
-                    sh 'curl -f http://24.144.64.148/api/health || exit 1'
-                }
+                echo 'Restarting application using PM2...'
+                sh """
+                    cd ${DEPLOY_DIR} || exit 1
+                    # Check if the process exists
+                    if pm2 describe codestore-api > /dev/null 2>&1; then
+                        echo "Process exists, restarting..."
+                        pm2 restart codestore-api --update-env
+                    else
+                        echo "Process does not exist, starting new..."
+                        pm2 start server.js --name codestore-api -- run start
+                    fi
+                    pm2 save
+                """
             }
         }
     }
     post {
-        failure {
-            echo "Deployment failed for backend"
-            // Optional: Trigger a Jira issue if deployment fails
-        }
         success {
-            echo "Backend deployment completed successfully"
+            echo 'Deployment completed successfully!'
+        }
+        failure {
+            echo 'Deployment failed. Check the logs for more details.'
+        }
+        always {
+            echo 'Cleaning up workspace...'
+            cleanWs()
         }
     }
 }
