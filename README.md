@@ -19,6 +19,8 @@ Admin Frontend: your-org/admin-frontend
 Admin Backend: your-org/admin-backend
 Common Repository: your-org/common-repo
 
+We can also setup branches for the above three and later can use inside if-else block.
+
 **Jenkins Setup:**
 
 A Jenkins server installed and running.
@@ -50,7 +52,7 @@ Pulling the latest changes from GitHub.
 Building or packaging the application (if necessary).
 Deploying the updated code to the client’s server.
 
-Step 5: Error Handling and Logging
+Step 5: Error Handling and Logging (In Development)
 If any part of the deployment fails, detailed logs are generated and stored in Jenkins for debugging.
 Notifications are sent to stakeholders (via email, Slack, or other integrations) to inform them of the failure.
 
