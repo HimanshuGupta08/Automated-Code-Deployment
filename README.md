@@ -1,4 +1,5 @@
 **CI/CD Integration for Automated Code Deployment**
+
 This repository is part of a CI/CD pipeline designed to automate the deployment of code to a client’s server. The pipeline integrates three GitHub repositories: Admin Frontend, Admin Backend, and a Common/Shared Repository. It ensures that code pushed to these repositories is automatically deployed to the client's server within a specified time window, with proper logging and error handling.
 
 **Overview**
