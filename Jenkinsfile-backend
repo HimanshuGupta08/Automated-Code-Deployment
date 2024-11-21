@@ -47,13 +47,14 @@ pipeline {
                 sh """
                     cd ${DEPLOY_DIR} || exit 1
                     # Check if the process exists
-                    if pm2 describe codestore-api > /dev/null 2>&1; then
+                    if pm2 describe codeapi > /dev/null 2>&1; then
                         echo "Process exists, restarting..."
-                        pm2 restart codestore-api --update-env
+                        pm2 restart codeapi --update-env
                     else
                         echo "Process does not exist, starting new..."
-                        pm2 start server.js --name codestore-api -- run start
                     fi
+                    pm2 save
+                    pm2 list
                     pm2 save
                 """
             }
