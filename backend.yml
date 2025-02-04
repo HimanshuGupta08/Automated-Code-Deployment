@@ -1,0 +1,31 @@
+name: Deploy Codestore Admin
+
+on:
+  push:
+    branches:
+      - main  # or main, depending on your branch master
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    # runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    - name: Deploy via SSH
+      uses: appleboy/ssh-action@v1.0.3
+      with:
+        host: "24.144.64.148"
+        username: "root"
+        key: ${{ secrets.SSH_PRIVATE_KEY }}
+        passphrase: ${{ secrets.SSH_PASSPHRASE }}  # Add this if the SSH key is passphrase-protected
+        script: |
+          cd /var/www/html/code-storeapi
+          git fetch origin main
+          git reset --hard origin/main
+          npm install
+          pm2 restart codestoreapi
+          pm2 save
+          pm2 list
